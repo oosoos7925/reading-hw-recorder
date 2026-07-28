@@ -55,6 +55,27 @@
 </div>
 
 <script>
+// ---- 버튼 중복 클릭 방지 (전역) ----
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('button');
+  if (!btn || btn.disabled || btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
+  btn.dataset.origText = btn.textContent;
+  btn.disabled = true;
+  btn.style.opacity = '0.55';
+  btn.style.cursor = 'wait';
+  btn.textContent = btn.textContent + ' ⏳';
+  setTimeout(() => {
+    if (btn.isConnected) {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      btn.textContent = btn.dataset.origText;
+      btn.dataset.busy = '0';
+    }
+  }, 3000);
+}, true);
+
 // ⚠️ Apps Script 웹앱 배포 URL로 반드시 교체하세요 (끝이 /exec 로 끝나는 그 주소).
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxeXH64BBnpFJG562tz64CxTS7CJh4CIxtqX_u6Yrhw_4JQIWnhS3MVCtv6ty9ZkrXa/exec';
 
@@ -238,8 +259,8 @@ function submitRecordingNow() {
 
         resultArea.innerHTML =
           '<div class="result">✅ 제출 완료!<br>' + gradeText + '</div>' +
-          '<div class="banner info">다시 녹음하거나 다음 번째 읽기를 하려면<br>이 창을 닫고 원래 화면으로 돌아가주세요.</div>' +
-          '<button class="btn-close" id="closeBtn">이 창 닫고 돌아가기</button>';
+          '<div class="banner info">잠시 후 이 창이 자동으로 닫혀요.</div>' +
+          '<button class="btn-close" id="closeBtn">지금 바로 닫기</button>';
 
         notifyOpenerAndMaybeClose();
       })
@@ -263,6 +284,10 @@ function notifyOpenerAndMaybeClose() {
   if (closeBtn) {
     closeBtn.addEventListener('click', () => { window.close(); });
   }
+
+  // 결과를 잠깐 보여준 뒤 자동으로 창을 닫습니다.
+  // (이 창은 학생 화면에서 window.open()으로 스크립트가 직접 연 창이라 자동 닫기가 정상 동작합니다.)
+  setTimeout(() => { window.close(); }, 1500);
 }
 </script>
 </body>
